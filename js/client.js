@@ -9,15 +9,27 @@ function getSavedClient() {
 
   if (!id || !name) return null;
 
-  return {
-    id,
-    full_name: name
-  };
+  return { id, full_name: name };
 }
 
 function clearSavedClient() {
   localStorage.removeItem("uno_polling_client_id");
   localStorage.removeItem("uno_polling_client_name");
+}
+
+async function validateSavedClient(clientId) {
+  const { data, error } = await supabaseClient
+    .from("polling_clients")
+    .select("id, full_name")
+    .eq("id", clientId)
+    .maybeSingle();
+
+  if (error || !data) {
+    clearSavedClient();
+    return null;
+  }
+
+  return data;
 }
 
 async function createPollingSubmission(clientId) {
@@ -43,17 +55,14 @@ async function createPollingSubmission(clientId) {
   return data.id;
 }
 
-async function restoreSavedClient() {
-  const savedClient = getSavedClient();
-
-  if (!savedClient) return false;
-
-  state.clientId = savedClient.id;
-  state.clientName = savedClient.full_name;
+async function goToCatalog(clientData) {
+  state.clientId = clientData.id;
+  state.clientName = clientData.full_name;
 
   state.submissionId = await createPollingSubmission(state.clientId);
 
   if (!state.submissionId) {
+    setClientStatus("Failed to create polling session.", "error");
     return false;
   }
 
@@ -64,6 +73,18 @@ async function restoreSavedClient() {
   await loadProducts();
 
   return true;
+}
+
+async function restoreSavedClient() {
+  const savedClient = getSavedClient();
+
+  if (!savedClient) return false;
+
+  const validClient = await validateSavedClient(savedClient.id);
+
+  if (!validClient) return false;
+
+  return await goToCatalog(validClient);
 }
 
 async function handleClientSubmit(event) {
@@ -77,7 +98,6 @@ async function handleClientSubmit(event) {
     company_name: $("companyName").value.trim()
   };
 
-  // VALIDASI WAJIB
   if (
     !payload.full_name ||
     !payload.position_title ||
@@ -90,7 +110,6 @@ async function handleClientSubmit(event) {
     return;
   }
 
-  // VALIDASI EMAIL
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(payload.email)) {
     setClientStatus("Invalid email format.", "error");
@@ -98,7 +117,6 @@ async function handleClientSubmit(event) {
     return;
   }
 
-  // VALIDASI WHATSAPP (opsional tapi bagus)
   if (payload.whatsapp.length < 8) {
     setClientStatus("Invalid WhatsApp number.", "error");
     showToast("Please enter a valid WhatsApp number.");
@@ -106,13 +124,56 @@ async function handleClientSubmit(event) {
   }
 
   setClientStatus("Processing client data...", "info");
+
+  let clientData = null;
+
+  const { data: existing, error: checkError } = await supabaseClient
+    .from("polling_clients")
+    .select("id, full_name")
+    .eq("email", payload.email)
+    .eq("company_name", payload.company_name)
+    .maybeSingle();
+
+  if (checkError) {
+    console.error("CHECK CLIENT ERROR:", checkError);
+    setClientStatus("Failed to check client data.", "error");
+    showToast("Failed to check client data.");
+    return;
+  }
+
+  if (existing) {
+    clientData = existing;
+  } else {
+    const { data, error } = await supabaseClient
+      .from("polling_clients")
+      .insert(payload)
+      .select("id, full_name")
+      .single();
+
+    if (error) {
+      console.error("CLIENT INSERT ERROR:", error);
+      setClientStatus("Failed to save client: " + error.message, "error");
+      showToast("Failed to enter product catalog.");
+      return;
+    }
+
+    clientData = data;
+  }
+
+  saveClientToLocal(clientData);
+
+  const success = await goToCatalog(clientData);
+
+  if (success) {
+    setClientStatus("", "info");
+    showToast("Successfully entered product catalog.");
+  }
 }
 
 function finishPolling() {
   state.selectedProduct = null;
-
   showPage("pageClientEntry", "Client Portal");
-  showToast("Your data is محفوظ. Reopening will take you directly to the catalog.");
+  showToast("Your client data remains saved.");
 }
 
 async function enterCatalogAgain() {
@@ -123,18 +184,12 @@ async function enterCatalogAgain() {
     return;
   }
 
-  state.clientId = savedClient.id;
-  state.clientName = savedClient.full_name;
+  const validClient = await validateSavedClient(savedClient.id);
 
-  state.submissionId = await createPollingSubmission(state.clientId);
-
-  if (!state.submissionId) {
+  if (!validClient) {
+    showToast("Saved client data is no longer valid. Please fill the form again.");
     return;
   }
 
-  $("clientGreeting").textContent =
-    `Hello ${state.clientName}, please select products and submit your responses.`;
-
-  showPage("pageGallery", "Product Gallery");
-  await loadProducts();
+  await goToCatalog(validClient);
 }
