@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNO Product Polling</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand" id="brandLogo">
+        <img src="./logo uno II.png" alt="UNO Logo" class="uno-logo-img" />
+        <div>
+          <div class="brand-title">Ultimate Nusantara Orion</div>
+          <div class="brand-subtitle">Integrated QHSE Ecosystem Services </div>
+        </div>
+      </div>
+
+      <div class="topbar-pill" id="currentPageLabel">Client Portal</div>
+    </header>
+
+    <!-- PAGE 1 -->
+    <main id="pageClientEntry" class="page active">
+      <section class="hero-card">
+        <div class="hero-copy hero-collab-only">
+  <div class="hero-collab-panel">
+    <div class="hero-collab-logos">
+      <img src="./logo uno II.png" alt="UNO" class="hero-logo-uno" />
+      <a href="https://uno-ultimate.com" target="_blank" class="hero-logo-link">
+    www.uno-ultimate.com
+  </a>
+
+      <div class="hero-collab-separator">×</div>
+
+      <img src="./portwest logo.png" alt="Portwest" class="hero-logo-portwest" />
+      <a href="https://www.portwest.com" target="_blank" class="hero-logo-link">
+    www.portwest.com
+  </a>
+
+    </div>
+
+    <div class="hero-collab-title">
+      Strategic PPE Collaboration
+    </div>
+
+    <div class="hero-collab-subtitle">
+      
+    </div>
+  </div>
+</div>
+
+        <form id="clientForm" class="glass-form">
+          <h2>Personal & Company Information</h2>
+          <div id="clientStatus" class="form-status"></div>
+
+          <label>Full Name
+            <input id="fullName" required placeholder="" />
+          </label>
+
+          <label>Position
+            <input id="positionTitle" placeholder="" />
+          </label>
+
+          <label>WhatsApp
+            <input id="whatsapp" placeholder="" />
+          </label>
+
+          <label>Email
+            <input id="email" type="email" placeholder="" />
+          </label>
+
+          <label>Company
+            <input id="companyName" required placeholder="" />
+          </label>
+
+          <button type="submit" class="primary-btn">Enter Product Catalog</button>
+        </form>
+      </section>
+    </main>
+
+    <!-- PAGE 2 -->
+    <main id="pageGallery" class="page">
+      <section class="section-head">
+        <div>
+          <h1>Gallery Product</h1>
+          <p id="clientGreeting"></p>
+        </div>
+        <button class="ghost-btn" id="finishPollingBtn">Finish / Exit</button>
+      </section>
+
+      <section class="filter-card">
+        <label>Search Product
+          <input id="searchInput" placeholder="Search code, Name, highlight..." />
+        </label>
+
+        <label>Category
+          <select id="categoryFilter">
+            <option value="">All Category</option>
+          </select>
+        </label>
+
+        <label>Resistant Type
+          <select id="resistantFilter">
+            <option value="">All Resistant Type</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="catalog-download-card">
+  <div>
+    <h3>Download Product Catalogue</h3>
+    <p>Access the full Portwest PPE catalogue in PDF format.</p>
+  </div>
+
+  <a
+    href="./PPE Portwest catalogue 2026.pdf"
+    download
+    class="catalog-download-btn"
+  >
+    Download PDF
+  </a>
+</section>
+
+      <section id="productGrid" class="product-grid"></section>
+    </main>
+
+    <!-- ADMIN LOGIN -->
+    <main id="pageAdminLogin" class="page">
+      <section class="login-card">
+        <img src="./logo uno II.png" alt="UNO Logo" class="uno-logo-img big" />
+        <h1>UNO Internal Login</h1>
+        <p>.</p>
+
+        <form id="adminLoginForm">
+          <label>Email
+            <input id="adminEmail" type="email" required placeholder="" />
+          </label>
+
+          <label>Password
+            <input id="adminPassword" type="password" required placeholder="" />
+          </label>
+
+          <button type="submit" class="primary-btn">Login UNO</button>
+        </form>
+
+        <button class="ghost-btn" id="backToClientBtn">Back</button>
+      </section>
+    </main>
+
+    <!-- ADMIN DASHBOARD -->
+    <main id="pageAdmin" class="page">
+      <section class="section-head">
+        <div>
+          <h1>UNO Dashboard</h1>
+          <p></p>
+        </div>
+        <button class="ghost-btn" id="logoutBtn">Logout</button>
+      </section>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="productsAdmin">Input / Edit Product</button>
+        <button class="tab" data-tab="analysisAdmin">Analisis Polling</button>
+        <button class="tab" data-tab="clientsAdmin">Client</button>
+      </nav>
+
+      <section id="productsAdmin" class="tab-panel active">
+        <div class="admin-grid">
+          <form id="productForm" class="admin-form">
+            <h2 id="productFormTitle">Tambah Product Baru</h2>
+            <input type="hidden" id="productId" />
+
+            <label>Code <input id="productCode" required /></label>
+            <label>Name <textarea id="productName" required></textarea></label>
+            <label>Category
+  <select id="productCategory">
+    <option value="">Select Category</option>
+  </select>
+</label>
+
+<label>Use Case</label>
+<div id="productUseCaseGroup" class="checkbox-group"></div>
+
+<label>Resistant Type</label>
+<div id="productResistantTypeGroup" class="checkbox-group"></div>
+
+<label>Protection Level
+  <select id="productProtectionLevel">
+    <option value="">Select Protection Level</option>
+  </select>
+</label>
+            <label>Highlight <textarea id="productHighlight"></textarea></label>
+            <label>Standards <input id="productStandards" /></label>
+            <label>Material / Spec <textarea id="productMaterialSpec"></textarea></label>
+            <label>Colour / Size <input id="productColourSize" /></label>
+            <label>Source Page <input id="productSourcePage" /></label>
+            <label>Upload Images
+  <input id="productImageFiles" type="file" accept="image/*" multiple />
+</label>
+
+<div id="imagePreview" class="image-preview-grid"></div>
+
+            <label class="check-row">
+              <input id="productActive" type="checkbox" checked /> Active
+            </label>
+
+            <div class="button-row">
+              <button type="submit" class="primary-btn">Simpan Product</button>
+              <button type="button" class="ghost-btn" id="resetProductFormBtn">Reset</button>
+            </div>
+          </form>
+
+          <div class="table-card">
+            <div class="table-head">
+              <h2>Product List</h2>
+              <input id="adminProductSearch" placeholder="Cari product..." />
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Resistant</th>
+                    <th>Active</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminProductTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="analysisAdmin" class="tab-panel">
+        <div id="kpiCards" class="kpi-grid"></div>
+
+        <div class="table-card">
+          <h2>Product Polling Analysis</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Interested</th>
+                  <th>Sample</th>
+                  <th>Quotation</th>
+                  <th>Est. Volume / Year</th>
+                  <th>Avg Expected Price</th>
+                </tr>
+              </thead>
+              <tbody id="analysisTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="clientsAdmin" class="tab-panel">
+        <div class="table-card">
+          <h2>Client & Response Detail</h2>
+          <div id="clientList" class="client-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- PRODUCT MODAL -->
+  <div id="productModal" class="modal">
+    <div class="modal-card">
+      <button class="modal-close" id="closeModalBtn">×</button>
+      <div id="modalProductContent"></div>
+
+      <form id="responseForm" class="response-form">
+        <h3>Response</h3>
+
+        <label class="check-row"><input id="respInterested" type="checkbox" /> Interested</label>
+        <label class="check-row"><input id="respNeedSample" type="checkbox" /> Need Sample</label>
+        <label class="check-row"><input id="respNeedQuotation" type="checkbox" /> Need Quotation</label>
+
+        <label>Expected Price
+          <input id="respExpectedPrice" type="text" inputmode="numeric" placeholder="Rp 0" />
+        </label>
+
+        <label>Estimated Volume per Year
+          <input id="respEstimatedVolume" type="text" inputmode="numeric" placeholder="0" />
+        </label>
+
+        <label>Notes
+          <textarea id="respNotes" placeholder="Catatan tambahan..."></textarea>
+        </label>
+
+        <button type="submit" class="primary-btn">Simpan Response</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="./js/config.js"></script>
+  <script src="./js/state.js"></script>
+  <script src="./js/utils.js"></script>
+  <script src="./js/products.js"></script>
+  <script src="./js/client.js"></script>
+  <script src="./js/response.js"></script>
+  <script src="./js/admin.js"></script>
+  <script src="./js/main.js"></script>
+</body>
+</html>
