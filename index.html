@@ -21,35 +21,31 @@
       <div class="topbar-pill" id="currentPageLabel">Client Portal</div>
     </header>
 
-    <!-- PAGE 1 -->
     <main id="pageClientEntry" class="page active">
       <section class="hero-card">
         <div class="hero-copy hero-collab-only">
-  <div class="hero-collab-panel">
-    <div class="hero-collab-logos">
-      <img src="./logo uno II.png" alt="UNO" class="hero-logo-uno" />
-      <a href="https://uno-ultimate.com" target="_blank" class="hero-logo-link">
-    www.uno-ultimate.com
-  </a>
+          <div class="hero-collab-panel">
+            <div class="hero-collab-logos">
+              <img src="./logo uno II.png" alt="UNO" class="hero-logo-uno" />
+              <a href="https://uno-ultimate.com" target="_blank" class="hero-logo-link">
+                www.uno-ultimate.com
+              </a>
 
-      <div class="hero-collab-separator">×</div>
+              <div class="hero-collab-separator">×</div>
 
-      <img src="./portwest logo.png" alt="Portwest" class="hero-logo-portwest" />
-      <a href="https://www.portwest.com" target="_blank" class="hero-logo-link">
-    www.portwest.com
-  </a>
+              <img src="./portwest logo.png" alt="Portwest" class="hero-logo-portwest" />
+              <a href="https://www.portwest.com" target="_blank" class="hero-logo-link">
+                www.portwest.com
+              </a>
+            </div>
 
-    </div>
+            <div class="hero-collab-title">
+              Strategic PPE Collaboration
+            </div>
 
-    <div class="hero-collab-title">
-      Strategic PPE Collaboration
-    </div>
-
-    <div class="hero-collab-subtitle">
-      
-    </div>
-  </div>
-</div>
+            <div class="hero-collab-subtitle"></div>
+          </div>
+        </div>
 
         <form id="clientForm" class="glass-form">
           <h2>Personal & Company Information</h2>
@@ -72,15 +68,26 @@
           </label>
 
           <label>Company
-            <input id="companyName" required required placeholder="" />
+            <input id="companyName" required placeholder="" />
           </label>
+
+          <label>Industry
+  <select id="industry" required>
+    <option value="">Select Industry</option>
+    <option value="Mining">Mining</option>
+    <option value="Oil & Gas">Oil & Gas</option>
+    <option value="Industrial">Industrial</option>
+    <option value="Hospitality">Hospitality</option>
+    <option value="Healthcare">Healthcare</option>
+    <option value="Other">Other</option>
+  </select>
+</label>
 
           <button type="submit" class="primary-btn">Enter Product Catalog</button>
         </form>
       </section>
     </main>
 
-    <!-- PAGE 2 -->
     <main id="pageGallery" class="page">
       <section class="section-head">
         <div>
@@ -102,31 +109,30 @@
         </label>
 
         <label>Resistant Type
-          <select id="resistantFilter" multiple size="5">
-            <option value="">All Resistant Type</option>
+          <select id="resistantFilter">
+            <option value="">All Resistant Types</option>
           </select>
         </label>
       </section>
 
       <section class="catalog-download-card">
-  <div>
-    <h3>Download Product Catalogue</h3>
-    <p>Access the full Portwest PPE catalogue in PDF format.</p>
-  </div>
+        <div>
+          <h3>Download Product Catalogue</h3>
+          <p>Access the full Portwest PPE catalogue in PDF format.</p>
+        </div>
 
-  <a
-    href="./PPE Portwest catalogue 2026.pdf"
-    download
-    class="catalog-download-btn"
-  >
-    Download PDF
-  </a>
-</section>
+        <a
+          href="./PPE Portwest catalogue 2026.pdf"
+          download
+          class="catalog-download-btn"
+        >
+          Download PDF
+        </a>
+      </section>
 
       <section id="productGrid" class="product-grid"></section>
     </main>
 
-    <!-- ADMIN LOGIN -->
     <main id="pageAdminLogin" class="page">
       <section class="login-card">
         <img src="./logo uno II.png" alt="UNO Logo" class="uno-logo-img big" />
@@ -149,7 +155,6 @@
       </section>
     </main>
 
-    <!-- ADMIN DASHBOARD -->
     <main id="pageAdmin" class="page">
       <section class="section-head">
         <div>
@@ -173,33 +178,36 @@
 
             <label>Code <input id="productCode" required /></label>
             <label>Name <textarea id="productName" required></textarea></label>
+
             <label>Category
-  <select id="productCategory">
-    <option value="">Select Category</option>
-  </select>
-</label>
+              <select id="productCategory">
+                <option value="">Select Category</option>
+              </select>
+            </label>
 
-<label>Use Case</label>
-<div id="productUseCaseGroup" class="checkbox-group"></div>
+            <label>Use Case</label>
+            <div id="productUseCaseGroup" class="checkbox-group"></div>
 
-<label>Resistant Type</label>
-<div id="productResistantTypeGroup" class="checkbox-group"></div>
+            <label>Resistant Type</label>
+            <div id="productResistantTypeGroup" class="checkbox-group"></div>
 
-<label>Protection Level
-  <select id="productProtectionLevel">
-    <option value="">Select Protection Level</option>
-  </select>
-</label>
+            <label>Protection Level
+              <select id="productProtectionLevel">
+                <option value="">Select Protection Level</option>
+              </select>
+            </label>
+
             <label>Highlight <textarea id="productHighlight"></textarea></label>
             <label>Standards <input id="productStandards" /></label>
             <label>Material / Spec <textarea id="productMaterialSpec"></textarea></label>
             <label>Colour / Size <input id="productColourSize" /></label>
             <label>Source Page <input id="productSourcePage" /></label>
-            <label>Upload Images
-  <input id="productImageFiles" type="file" accept="image/*" multiple />
-</label>
 
-<div id="imagePreview" class="image-preview-grid"></div>
+            <label>Upload Images
+              <input id="productImageFiles" type="file" accept="image/*" multiple />
+            </label>
+
+            <div id="imagePreview" class="image-preview-grid"></div>
 
             <label class="check-row">
               <input id="productActive" type="checkbox" checked /> Active
@@ -271,7 +279,6 @@
     </main>
   </div>
 
-  <!-- PRODUCT MODAL -->
   <div id="productModal" class="modal">
     <div class="modal-card">
       <button class="modal-close" id="closeModalBtn">×</button>
@@ -306,12 +313,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script src="js/config.js"></script>
-<script src="js/state.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/products.js"></script>
-<script src="js/client.js"></script>
-<script src="js/response.js"></script>
-<script src="js/admin.js"></script>
-<script src="js/main.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/client.js"></script>
+  <script src="js/response.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

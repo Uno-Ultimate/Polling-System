@@ -95,7 +95,8 @@ async function handleClientSubmit(event) {
     position_title: $("positionTitle").value.trim(),
     whatsapp: $("whatsapp").value.trim(),
     email: $("email").value.trim(),
-    company_name: $("companyName").value.trim()
+    company_name: $("companyName").value.trim(),
+    industry: $("industry").value.trim()
   };
 
   if (
@@ -103,7 +104,8 @@ async function handleClientSubmit(event) {
     !payload.position_title ||
     !payload.whatsapp ||
     !payload.email ||
-    !payload.company_name
+    !payload.company_name ||
+    !payload.industry
   ) {
     setClientStatus("All fields are required.", "error");
     showToast("Please complete all fields.");
@@ -143,6 +145,23 @@ async function handleClientSubmit(event) {
 
   if (existing) {
     clientData = existing;
+
+    const { error: updateError } = await supabaseClient
+      .from("polling_clients")
+      .update({
+        full_name: payload.full_name,
+        position_title: payload.position_title,
+        whatsapp: payload.whatsapp,
+        industry: payload.industry
+      })
+      .eq("id", existing.id);
+
+    if (updateError) {
+      console.error("CLIENT UPDATE ERROR:", updateError);
+      setClientStatus("Failed to update client: " + updateError.message, "error");
+      showToast("Failed to update client data.");
+      return;
+    }
   } else {
     const { data, error } = await supabaseClient
       .from("polling_clients")
