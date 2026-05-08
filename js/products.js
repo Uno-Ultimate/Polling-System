@@ -235,14 +235,22 @@ function buildFilters() {
     categories.map((c) => `<option value="${c}">${c}</option>`).join("");
 
   $("resistantFilter").innerHTML =
-    `<option value="">All Resistant Types</option>` +
-    resistantTypes.map((r) => `<option value="${r}">${r}</option>`).join("");
+  `<option value="">All Resistant Types</option>` +
+  resistantTypes.map((r) => `<option value="${r}">${r}</option>`).join("");
 }
 
 function applyProductFilters() {
   const keyword = $("searchInput").value.trim().toLowerCase();
   const category = $("categoryFilter").value;
-  const resistant = $("resistantFilter").value;
+
+  const selectedOptions = Array.from($("resistantFilter").selectedOptions || []);
+  const selectedResistantTypes = selectedOptions
+    .map((option) => option.value)
+    .filter(Boolean);
+
+  const isAllSelected =
+    selectedOptions.length === 0 ||
+    selectedOptions.some((opt) => opt.value === "");
 
   state.filteredProducts = state.products.filter((p) => {
     const resistantList = normalizeArray(p.resistant_type);
@@ -260,10 +268,14 @@ function applyProductFilters() {
       .join(" ")
       .toLowerCase();
 
+    const matchResistant =
+      isAllSelected ||
+      selectedResistantTypes.some((type) => resistantList.includes(type));
+
     return (
       (!keyword || searchable.includes(keyword)) &&
       (!category || p.category === category) &&
-      (!resistant || resistantList.includes(resistant))
+      matchResistant
     );
   });
 
