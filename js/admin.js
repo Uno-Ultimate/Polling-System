@@ -281,18 +281,36 @@ async function uploadMultipleProductImages(files) {
 }
 
 async function loadAdminProducts() {
-  const { data, error } = await supabaseClient
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const pageSize = 1000;
+  let from = 0;
+  let allProducts = [];
+  let hasMore = true;
 
-  if (error) {
-    console.error("LOAD ADMIN PRODUCTS ERROR:", error);
-    showToast("Failed to load admin products.");
-    return;
+  while (hasMore) {
+    const { data, error } = await supabaseClient
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      console.error("LOAD ADMIN PRODUCTS ERROR:", error);
+      showToast("Failed to load admin products.");
+      return;
+    }
+
+    const rows = data || [];
+    allProducts = allProducts.concat(rows);
+
+    hasMore = rows.length === pageSize;
+    from += pageSize;
   }
 
-  state.adminProducts = data || [];
+  state.adminProducts = allProducts;
+
+  if (state.adminProducts.length === 0) {
+    showToast("No products found in admin panel.");
+  }
 
   if (!state.masterOptions.categories.length) {
     await loadMasterOptions();

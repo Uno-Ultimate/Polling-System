@@ -177,23 +177,37 @@ function changeModalImageFromButton(button) {
 }
 
 async function loadProducts() {
-  const { data, error } = await supabaseClient
-    .from("products")
-    .select("*")
-    .eq("active", true)
-    .order("category", { ascending: true })
-    .order("code", { ascending: true });
+  const pageSize = 1000;
+  let from = 0;
+  let allProducts = [];
+  let hasMore = true;
 
-  if (error) {
-    console.error("LOAD PRODUCTS ERROR:", error);
-    showToast("Failed to load products from database.");
-    state.products = [];
-    state.filteredProducts = [];
-    renderProductGrid();
-    return;
+  while (hasMore) {
+    const { data, error } = await supabaseClient
+      .from("products")
+      .select("*")
+      .eq("active", true)
+      .order("category", { ascending: true })
+      .order("code", { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      console.error("LOAD PRODUCTS ERROR:", error);
+      showToast("Failed to load products from database.");
+      state.products = [];
+      state.filteredProducts = [];
+      renderProductGrid();
+      return;
+    }
+
+    const rows = data || [];
+    allProducts = allProducts.concat(rows);
+
+    hasMore = rows.length === pageSize;
+    from += pageSize;
   }
 
-  state.products = data || [];
+  state.products = allProducts;
 
   if (state.products.length === 0) {
     showToast("No products found. Please ensure data has been imported.");
