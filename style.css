@@ -2075,3 +2075,119 @@ input:valid {
     min-height: 38px;
   }
 }
+
+/* ===== Mobile layout fix ===== */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .app-shell {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 14px;
+  }
+
+  .topbar {
+    gap: 12px;
+    align-items: center;
+  }
+
+  .brand-title {
+    font-size: 16px;
+  }
+
+  .brand-subtitle {
+    font-size: 12px;
+  }
+
+  .topbar-pill {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .form-hero {
+    margin: 18px auto 16px;
+    text-align: center;
+  }
+
+  .form-hero h1 {
+    font-size: 28px;
+    line-height: 1.15;
+  }
+
+  .form-hero p {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .hero-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px;
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  .glass-form {
+    order: 1;
+    width: 100%;
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+
+  .glass-form h2 {
+    font-size: 24px;
+    line-height: 1.15;
+  }
+
+  .glass-form input,
+  .glass-form select {
+    min-height: 46px;
+    font-size: 14px;
+  }
+
+  .hero-copy {
+    order: 2;
+    width: 100%;
+  }
+
+  .hero-collab-panel {
+    min-height: 220px !important;
+    height: 220px !important;
+    overflow: hidden;
+    border-radius: 22px;
+  }
+
+  .hero-logo-uno {
+    width: 58px;
+  }
+
+  .hero-logo-portwest {
+    width: 150px;
+  }
+
+  .hero-collab-logos {
+    gap: 8px;
+    padding-bottom: 42px;
+  }
+
+  .hero-logo-link {
+    font-size: 12px;
+  }
+
+  .hero-collab-title {
+    bottom: 14px;
+    font-size: 13px;
+  }
+
+  .assessment-panel,
+  .filter-card,
+  .product-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .product-card {
+    width: 100%;
+  }
+}

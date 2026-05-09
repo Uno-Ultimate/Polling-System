@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  setupBrowserBackNavigation();
   bindEvents();
 
   const restored = await restoreSavedClient();
-
   if (restored) {
     console.log("Saved client restored with new submission.");
   }

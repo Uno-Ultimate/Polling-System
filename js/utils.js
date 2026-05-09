@@ -2,7 +2,9 @@ function $(id) {
   return document.getElementById(id);
 }
 
-function showPage(pageId, label) {
+function showPage(pageId, label, options = {}) {
+  const shouldPushHistory = options.pushHistory !== false;
+
   document.querySelectorAll(".page").forEach((page) => {
     page.classList.remove("active");
   });
@@ -17,6 +19,13 @@ function showPage(pageId, label) {
   target.classList.add("active");
   $("currentPageLabel").textContent = label;
   window.scrollTo({ top: 0, behavior: "smooth" });
+
+  if (shouldPushHistory) {
+    const currentState = history.state || {};
+    if (currentState.pageId !== pageId) {
+      history.pushState({ pageId, label }, "", window.location.href);
+    }
+  }
 }
 
 function showToast(message) {
@@ -62,4 +71,22 @@ function handleLogoClick() {
   state.logoTimer = setTimeout(() => {
     state.logoClickCount = 0;
   }, 1200);
+}
+
+function setupBrowserBackNavigation() {
+  history.replaceState(
+    { pageId: "pageClientEntry", label: "Client Portal" },
+    "",
+    window.location.href
+  );
+
+  window.addEventListener("popstate", (event) => {
+    const stateData = event.state;
+
+    if (!stateData || !stateData.pageId) return;
+
+    showPage(stateData.pageId, stateData.label, {
+      pushHistory: false
+    });
+  });
 }
