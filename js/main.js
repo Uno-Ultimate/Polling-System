@@ -31,6 +31,33 @@ function bindEvents() {
 
   $("logoutBtn").addEventListener("click", logoutAdmin);
 
+  $("startRecommendationBtn").addEventListener("click", async () => {
+    const risks = getCheckedValues("riskGroup");
+    const environments = getCheckedValues("envGroup");
+    const categories = getCheckedValues("ppeTypeGroup");
+
+    if (!risks.length) {
+      showToast("Please select at least one Primary Risk.");
+      return;
+    }
+
+    state.assessment = {
+      risks,
+      environments,
+      priority: $("prioritySelect").value,
+      categories,
+      industry: $("industry").value
+    };
+
+    showPage("pageGallery", "Recommended Products");
+
+    if (!state.products.length) {
+      await loadProducts();
+    }
+
+    applyRecommendation();
+  });
+
   document.querySelectorAll(".tab").forEach((btn) => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });

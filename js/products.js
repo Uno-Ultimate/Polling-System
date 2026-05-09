@@ -1,3 +1,5 @@
+const PRODUCT_RENDER_LIMIT = 60;
+
 function normalizeArray(value) {
   if (!value) return [];
 
@@ -196,6 +198,7 @@ async function loadProducts() {
       showToast("Failed to load products from database.");
       state.products = [];
       state.filteredProducts = [];
+      state.recommendedProducts = [];
       renderProductGrid();
       return;
     }
@@ -232,11 +235,149 @@ function buildFilters() {
 
   $("categoryFilter").innerHTML =
     `<option value="">All Category</option>` +
-    categories.map((c) => `<option value="${c}">${c}</option>`).join("");
+    categories.map((c) => `<option value="${safeText(c)}">${safeText(c)}</option>`).join("");
 
   $("resistantFilter").innerHTML =
     `<option value="">All Resistant Types</option>` +
-    resistantTypes.map((r) => `<option value="${r}">${r}</option>`).join("");
+    resistantTypes.map((r) => `<option value="${safeText(r)}">${safeText(r)}</option>`).join("");
+
+  buildPpeTypeAssessmentOptions(categories);
+}
+
+function buildPpeTypeAssessmentOptions(categories) {
+  const group = $("ppeTypeGroup");
+  if (!group) return;
+
+  group.innerHTML = categories
+    .map(
+      (category) => `
+        <label class="checkbox-pill">
+          <input type="checkbox" value="${safeText(category)}" />
+          <span>${safeText(category)}</span>
+        </label>
+      `
+    )
+    .join("");
+}
+
+function getCheckedValues(groupId) {
+  const group = $(groupId);
+  if (!group) return [];
+
+  return Array.from(group.querySelectorAll("input[type='checkbox']:checked"))
+    .map((input) => input.value)
+    .filter(Boolean);
+}
+
+const riskMap = {
+  "Chemical": ["Chemical", "Liquid", "Acid", "Oil Resistant"],
+  "Heat / Fire": ["Heat", "Flame", "Fire", "Welding"],
+  "Impact / Mechanical": ["Impact", "Cut", "Puncture", "Mechanical"],
+  "Dust / Respiratory": ["Dust", "Respiratory", "FFP", "Mask", "Respirator"],
+  "Working at Height": ["Fall", "Height", "Harness", "Lanyard"]
+};
+
+const industryCategoryMap = {
+  "Mining": ["Head", "Eye", "Hand", "Foot", "Respiratory", "Hearing", "Body"],
+  "Oil & Gas": ["Body", "Hand", "Foot", "Eye", "Head", "Respiratory"],
+  "Industrial": ["Hand", "Foot", "Eye", "Head", "Body", "Hearing"],
+  "Hospitality": ["Body", "Foot", "Hand"],
+  "Healthcare": ["Body", "Hand", "Respiratory", "Eye"],
+  "Other": []
+};
+
+function getClientIndustry() {
+  const input = $("industry");
+  return input ? input.value : "";
+}
+
+function getRecommendedProducts(answers, products) {
+  const selectedCategories = answers.categories || [];
+  const selectedEnv = answers.environments || [];
+  const selectedRisk = answers.risks || [];
+  const priority = answers.priority;
+
+  let filtered = [...products];
+
+  if (selectedCategories.length > 0) {
+    filtered = filtered.filter((p) =>
+      selectedCategories.includes(p.category)
+    );
+  }
+
+  if (selectedEnv.length > 0) {
+    filtered = filtered.filter((p) => {
+      const useCases = normalizeArray(p.use_case);
+
+      return selectedEnv.some((env) => {
+        if (env === "Outdoor") return useCases.includes("Oil & Gas") || useCases.includes("Mining");
+        if (env === "Indoor") return useCases.includes("Industrial");
+        if (env === "Hazardous Site") return useCases.includes("Oil & Gas") || useCases.includes("Mining");
+        return false;
+      });
+    });
+  }
+
+  if (selectedRisk.length > 0) {
+    filtered = filtered.filter((p) => {
+      const resistant = normalizeArray(p.resistant_type);
+      const category = String(p.category || "");
+      const searchable = [
+        p.code,
+        p.name,
+        p.highlight,
+        p.standards,
+        p.material_spec,
+        ...resistant
+      ].join(" ").toLowerCase();
+
+      return selectedRisk.some((risk) => {
+        if (risk === "Chemical") return searchable.includes("chemical");
+        if (risk === "Heat / Fire") return searchable.includes("heat") || searchable.includes("flame") || searchable.includes("fire");
+        if (risk === "Impact / Mechanical") return searchable.includes("impact") || searchable.includes("cut") || searchable.includes("puncture");
+        if (risk === "Dust / Respiratory") return category === "Respiratory" || searchable.includes("dust") || searchable.includes("respirator") || searchable.includes("mask");
+        if (risk === "Working at Height") return searchable.includes("fall") || searchable.includes("height") || searchable.includes("harness") || searchable.includes("lanyard");
+        return false;
+      });
+    });
+  }
+
+  const sorted = filtered.map((p) => {
+    let score = 0;
+
+    if (priority === "Compliance" && p.standards) score += 5;
+    if (priority === "Comfort" && String(p.highlight || "").toLowerCase().includes("comfort")) score += 5;
+    if (priority === "Durability" && String(p.material_spec || "").toLowerCase().includes("durable")) score += 5;
+    if (priority === "Cost Efficiency" && String(p.highlight || "").toLowerCase().includes("economy")) score += 5;
+
+    return { ...p, score };
+  });
+
+  return sorted.sort((a, b) => b.score - a.score);
+}
+
+function applyRecommendation() {
+  if (!state.assessment) {
+    applyProductFilters();
+    return;
+  }
+
+  const recommended = getRecommendedProducts(state.assessment, state.products);
+
+  state.recommendedProducts = recommended.length ? recommended : state.products;
+
+  state.renderLimit =
+    state.recommendedProducts.length > 150
+      ? PRODUCT_RENDER_LIMIT
+      : state.recommendedProducts.length;
+
+  state.filteredProducts = state.recommendedProducts.slice(0, state.renderLimit);
+
+  if ($("galleryTitle")) {
+    $("galleryTitle").textContent = "Recommended PPE";
+  }
+
+  renderProductGrid();
 }
 
 function applyProductFilters() {
@@ -244,18 +385,16 @@ function applyProductFilters() {
   const category = $("categoryFilter").value;
   const resistant = $("resistantFilter").value;
 
+  state.recommendedProducts = [];
+  state.renderLimit = PRODUCT_RENDER_LIMIT;
+
   state.filteredProducts = state.products.filter((p) => {
     const resistantList = normalizeArray(p.resistant_type);
-    const useCaseList = normalizeArray(p.use_case);
 
     const searchable = [
       p.code,
       p.name,
-      p.category,
-      p.highlight,
-      p.protection_level,
-      ...resistantList,
-      ...useCaseList
+      p.highlight
     ]
       .join(" ")
       .toLowerCase();
@@ -266,6 +405,10 @@ function applyProductFilters() {
       (!resistant || resistantList.includes(resistant))
     );
   });
+
+  if ($("galleryTitle")) {
+    $("galleryTitle").textContent = "Product Gallery";
+  }
 
   renderProductGrid();
 }
@@ -283,28 +426,60 @@ function renderProductGrid() {
     return;
   }
 
-  grid.innerHTML = state.filteredProducts
-    .map(
-      (p) => `
-        <article class="product-card">
-          ${imageBlock(p, "card")}
+  const totalRecommended =
+    state.recommendedProducts && state.recommendedProducts.length
+      ? state.recommendedProducts.length
+      : state.filteredProducts.length;
 
-          <div class="badge-row">
-            <span class="badge">${safeText(p.code)}</span>
-            <span class="badge aqua">${safeText(p.category)}</span>
-            ${renderBadges(p.resistant_type, "yellow")}
-          </div>
+  const showingCount = state.filteredProducts.length;
 
-          <h3>${safeText(p.name)}</h3>
-          <p>${safeText(p.highlight || displayList(p.use_case))}</p>
+  const hasLoadMore =
+    state.recommendedProducts &&
+    state.recommendedProducts.length > showingCount;
 
-          <button class="primary-btn" onclick="openProductModal('${p.id}')">
-            View Details & Respond
-          </button>
-        </article>
-      `
-    )
-    .join("");
+  grid.innerHTML = `
+    <div class="result-summary">
+      Showing ${showingCount} of ${totalRecommended} products
+    </div>
+
+    ${state.filteredProducts
+      .map(
+        (p) => `
+          <article class="product-card">
+            ${imageBlock(p, "card")}
+
+            <div class="badge-row">
+              <span class="badge">${safeText(p.code)}</span>
+              <span class="badge aqua">${safeText(p.category)}</span>
+              ${renderBadges(p.resistant_type, "yellow")}
+            </div>
+
+            <h3>${safeText(p.name)}</h3>
+            <p>${safeText(p.highlight || displayList(p.use_case))}</p>
+
+            <button class="primary-btn" onclick="openProductModal('${p.id}')">
+              Evaluate Product
+            </button>
+          </article>
+        `
+      )
+      .join("")}
+
+    ${
+      hasLoadMore
+        ? `<button class="ghost-btn load-more-btn" onclick="loadMoreProducts()">Load More Products</button>`
+        : ""
+    }
+  `;
+}
+
+function loadMoreProducts() {
+  if (!state.recommendedProducts || !state.recommendedProducts.length) return;
+
+  state.renderLimit += PRODUCT_RENDER_LIMIT;
+  state.filteredProducts = state.recommendedProducts.slice(0, state.renderLimit);
+
+  renderProductGrid();
 }
 
 function openProductModal(productId) {

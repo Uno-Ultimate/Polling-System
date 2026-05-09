@@ -67,10 +67,13 @@ async function goToCatalog(clientData) {
   }
 
   $("clientGreeting").textContent =
-    `Hello ${state.clientName}, please select products and submit your responses.`;
+    `Hello ${state.clientName}, based on your assessment we will recommend relevant PPE products.`;
 
-  showPage("pageGallery", "Product Gallery");
-  await loadProducts();
+  showPage("pageAssessment", "PPE Assessment");
+
+  if (!state.products.length) {
+    await loadProducts();
+  }
 
   return true;
 }
@@ -185,12 +188,14 @@ async function handleClientSubmit(event) {
 
   if (success) {
     setClientStatus("", "info");
-    showToast("Successfully entered product catalog.");
+    showToast("Successfully entered PPE assessment.");
   }
 }
 
 function finishPolling() {
   state.selectedProduct = null;
+  state.assessment = null;
+
   showPage("pageClientEntry", "Client Portal");
   showToast("Your client data remains saved.");
 }

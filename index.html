@@ -21,7 +21,19 @@
       <div class="topbar-pill" id="currentPageLabel">Client Portal</div>
     </header>
 
+    <!-- PAGE 1: CLIENT ENTRY -->
     <main id="pageClientEntry" class="page active">
+
+      <section class="form-hero">
+        <h1>
+          Get PPE recommendations tailored to your operation in under 2 minutes
+        </h1>
+
+        <p>
+          No need to review all items — we filter the most relevant products for you.
+        </p>
+      </section>
+
       <section class="hero-card">
         <div class="hero-copy hero-collab-only">
           <div class="hero-collab-panel">
@@ -42,8 +54,6 @@
             <div class="hero-collab-title">
               Strategic PPE Collaboration
             </div>
-
-            <div class="hero-collab-subtitle"></div>
           </div>
         </div>
 
@@ -72,26 +82,113 @@
           </label>
 
           <label>Industry
-  <select id="industry" required>
-    <option value="">Select Industry</option>
-    <option value="Mining">Mining</option>
-    <option value="Oil & Gas">Oil & Gas</option>
-    <option value="Industrial">Industrial</option>
-    <option value="Hospitality">Hospitality</option>
-    <option value="Healthcare">Healthcare</option>
-    <option value="Other">Other</option>
-  </select>
-</label>
+            <select id="industry" required>
+              <option value="">Select Industry</option>
+              <option value="Mining">Mining</option>
+              <option value="Oil & Gas">Oil & Gas</option>
+              <option value="Industrial">Industrial</option>
+              <option value="Hospitality">Hospitality</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
 
-          <button type="submit" class="primary-btn">Enter Product Catalog</button>
+          <button type="submit" class="primary-btn">Start My PPE Recommendation</button>
         </form>
       </section>
     </main>
 
+    <!-- PAGE 2: QUICK ASSESSMENT -->
+    <main id="pageAssessment" class="page">
+      <section class="assessment-hero">
+        <div>
+          <span class="assessment-kicker">2-minute recommendation</span>
+          <h1>Quick PPE Assessment</h1>
+          <p>Answer a few questions so we can recommend PPE products that match your operation.</p>
+        </div>
+      </section>
+
+      <section class="assessment-panel">
+        <div class="assessment-question wide">
+          <div class="question-top">
+            <span class="question-number">01</span>
+            <div>
+              <h3>Primary Risk</h3>
+              <p>Select one or more risk exposures.</p>
+            </div>
+          </div>
+
+          <div id="riskGroup" class="pill-group">
+            <label class="checkbox-pill"><input type="checkbox" value="Chemical" /> <span>Chemical</span></label>
+            <label class="checkbox-pill"><input type="checkbox" value="Heat / Fire" /> <span>Heat / Fire</span></label>
+            <label class="checkbox-pill"><input type="checkbox" value="Impact / Mechanical" /> <span>Impact / Mechanical</span></label>
+            <label class="checkbox-pill"><input type="checkbox" value="Dust / Respiratory" /> <span>Dust / Respiratory</span></label>
+            <label class="checkbox-pill"><input type="checkbox" value="Working at Height" /> <span>Working at Height</span></label>
+          </div>
+        </div>
+
+        <div class="assessment-question">
+          <div class="question-top">
+            <span class="question-number">02</span>
+            <div>
+              <h3>Work Environment</h3>
+              <p>Where will the PPE be used?</p>
+            </div>
+          </div>
+
+          <div id="envGroup" class="pill-group">
+            <label class="checkbox-pill"><input type="checkbox" value="Indoor" /> <span>Indoor</span></label>
+            <label class="checkbox-pill"><input type="checkbox" value="Outdoor" /> <span>Outdoor</span></label>
+            <label class="checkbox-pill"><input type="checkbox" value="Hazardous Site" /> <span>Hazardous Site</span></label>
+          </div>
+        </div>
+
+        <div class="assessment-question">
+          <div class="question-top">
+            <span class="question-number">03</span>
+            <div>
+              <h3>Priority</h3>
+              <p>What matters most?</p>
+            </div>
+          </div>
+
+          <select id="prioritySelect">
+            <option value="Compliance">Compliance</option>
+            <option value="Comfort">Comfort</option>
+            <option value="Durability">Durability</option>
+            <option value="Cost Efficiency">Cost Efficiency</option>
+          </select>
+        </div>
+
+        <div class="assessment-question wide">
+          <div class="question-top">
+            <span class="question-number">04</span>
+            <div>
+              <h3>PPE Area Focus</h3>
+              <p>Optional. Leave blank to include all categories.</p>
+            </div>
+          </div>
+
+          <div id="ppeTypeGroup" class="pill-group"></div>
+        </div>
+
+        <div class="assessment-action">
+          <div>
+            <h3>Ready to see recommendations?</h3>
+            <p>We will show only the most relevant products.</p>
+          </div>
+          <button id="startRecommendationBtn" type="button" class="primary-btn">
+            Show Recommended PPE
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- PAGE 3: PRODUCT GALLERY -->
     <main id="pageGallery" class="page">
       <section class="section-head">
         <div>
-          <h1>Gallery Product</h1>
+          <h1 id="galleryTitle">Recommended PPE</h1>
           <p id="clientGreeting"></p>
         </div>
         <button class="ghost-btn" id="finishPollingBtn">Finish / Exit</button>
@@ -133,6 +230,7 @@
       <section id="productGrid" class="product-grid"></section>
     </main>
 
+    <!-- ADMIN LOGIN -->
     <main id="pageAdminLogin" class="page">
       <section class="login-card">
         <img src="./logo uno II.png" alt="UNO Logo" class="uno-logo-img big" />
@@ -155,6 +253,7 @@
       </section>
     </main>
 
+    <!-- ADMIN DASHBOARD -->
     <main id="pageAdmin" class="page">
       <section class="section-head">
         <div>
@@ -279,6 +378,7 @@
     </main>
   </div>
 
+  <!-- PRODUCT MODAL -->
   <div id="productModal" class="modal">
     <div class="modal-card">
       <button class="modal-close" id="closeModalBtn">×</button>

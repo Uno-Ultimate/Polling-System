@@ -5,7 +5,11 @@ window.state = {
 
   products: [],
   filteredProducts: [],
+  recommendedProducts: [],
+  renderLimit: 60,
   selectedProduct: null,
+
+  assessment: null,
 
   logoClickCount: 0,
   logoTimer: null,
