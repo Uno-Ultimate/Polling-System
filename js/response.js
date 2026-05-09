@@ -49,6 +49,8 @@ async function saveResponse(event) {
     return;
   }
 
+  updateFinishButtonState(true);
+
   closeProductModal();
   showToast("Response saved successfully.");
 }

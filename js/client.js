@@ -75,6 +75,8 @@ async function goToCatalog(clientData) {
     await loadProducts();
   }
 
+  updateFinishButtonState(false);
+
   return true;
 }
 
@@ -115,16 +117,42 @@ async function handleClientSubmit(event) {
     return;
   }
 
+  if (payload.full_name.length < 3) {
+    setClientStatus("Full name is too short.", "error");
+    showToast("Please enter your real name.");
+    return;
+  }
+
+  const invalidCompany = ["test", "abc", "asdf", "qwerty"];
+
+  if (
+    payload.company_name.length < 3 ||
+    invalidCompany.includes(payload.company_name.toLowerCase())
+  ) {
+    setClientStatus("Invalid company name.", "error");
+    showToast("Please enter a valid company name.");
+    return;
+  }
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   if (!emailRegex.test(payload.email)) {
     setClientStatus("Invalid email format.", "error");
     showToast("Please enter a valid email.");
     return;
   }
 
-  if (payload.whatsapp.length < 8) {
+  const phoneRegex = /^(\+62|62|08)[0-9]{8,13}$/;
+
+  if (!phoneRegex.test(payload.whatsapp)) {
     setClientStatus("Invalid WhatsApp number.", "error");
-    showToast("Please enter a valid WhatsApp number.");
+    showToast("Use valid format (08xxxx / +62xxxx)");
+    return;
+  }
+
+  if (!payload.industry) {
+    setClientStatus("Please select industry.", "error");
+    showToast("Industry is required.");
     return;
   }
 
@@ -192,12 +220,54 @@ async function handleClientSubmit(event) {
   }
 }
 
-function finishPolling() {
+async function hasAtLeastOneResponse(submissionId) {
+  const { data, error } = await supabaseClient
+    .from("polling_responses")
+    .select("id")
+    .eq("submission_id", submissionId)
+    .limit(1);
+
+  if (error) {
+    console.error("CHECK RESPONSE ERROR:", error);
+    return false;
+  }
+
+  return data && data.length > 0;
+}
+
+function updateFinishButtonState(enabled) {
+  const btn = $("finishPollingBtn");
+  if (!btn) return;
+
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? "1" : "0.55";
+  btn.style.cursor = enabled ? "pointer" : "not-allowed";
+}
+
+function showNoResponsePopup() {
+  alert("You haven’t selected any product yet.\n\nPlease evaluate at least 1 product before finishing.");
+}
+
+async function finishPolling() {
+  if (!state.submissionId) {
+    showToast("No active session.");
+    return;
+  }
+
+  const hasResponse = await hasAtLeastOneResponse(state.submissionId);
+
+  if (!hasResponse) {
+    showNoResponsePopup();
+    showToast("Please select at least 1 product before finishing.");
+    updateFinishButtonState(false);
+    return;
+  }
+
   state.selectedProduct = null;
   state.assessment = null;
 
   showPage("pageClientEntry", "Client Portal");
-  showToast("Your client data remains saved.");
+  showToast("Thank you. Your responses have been saved.");
 }
 
 async function enterCatalogAgain() {
