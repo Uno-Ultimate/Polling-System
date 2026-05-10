@@ -49,6 +49,23 @@ function bindEvents() {
       industry: $("industry").value
     };
 
+    const { error: assessmentError } = await supabaseClient
+  .from("polling_submissions")
+  .update({
+    assessment_risks: risks,
+    assessment_environments: environments,
+    assessment_priority: $("prioritySelect").value,
+    assessment_categories: categories,
+    assessment_industry: $("industry").value
+  })
+  .eq("id", state.submissionId);
+
+if (assessmentError) {
+  console.error("SAVE ASSESSMENT ERROR:", assessmentError);
+  showToast("Failed to save assessment data.");
+  return;
+}
+
     showPage("pageGallery", "Recommended Products");
 
     if (!state.products.length) {
