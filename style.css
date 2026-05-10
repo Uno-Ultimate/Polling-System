@@ -2378,3 +2378,54 @@ input:valid {
     max-height: 560px;
   }
 }
+/* ===== MOBILE BRANDING PANEL FIX ===== */
+@media (max-width: 768px) {
+  .hero-copy {
+    min-height: auto !important;
+    padding: 18px !important;
+    border-radius: 24px !important;
+  }
+
+  .hero-collab-panel {
+    min-height: 260px !important;
+    height: auto !important;
+    padding: 22px 16px !important;
+    overflow: hidden !important;
+  }
+
+  .hero-collab-logos {
+    gap: 12px !important;
+    padding-bottom: 38px !important;
+  }
+
+  .hero-logo-uno {
+    width: 72px !important;
+    max-height: 72px !important;
+    object-fit: contain !important;
+    transform: none !important;
+  }
+
+  .hero-logo-portwest {
+    width: 190px !important;
+    max-width: 82% !important;
+    height: auto !important;
+    max-height: 78px !important;
+    object-fit: contain !important;
+    padding: 12px 18px !important;
+    border-radius: 18px !important;
+    transform: none !important;
+  }
+
+  .hero-logo-link {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    word-break: break-word !important;
+  }
+
+  .hero-collab-title {
+    bottom: 12px !important;
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    padding: 0 10px !important;
+  }
+}
