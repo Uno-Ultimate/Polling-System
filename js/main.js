@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   bindEvents();
 
   const restored = await restoreSavedClient();
+
   if (restored) {
     console.log("Saved client restored with new submission.");
   }
@@ -31,49 +32,7 @@ function bindEvents() {
 
   $("logoutBtn").addEventListener("click", logoutAdmin);
 
-  $("startRecommendationBtn").addEventListener("click", async () => {
-    const risks = getCheckedValues("riskGroup");
-    const environments = getCheckedValues("envGroup");
-    const categories = getCheckedValues("ppeTypeGroup");
-
-    if (!risks.length) {
-      showToast("Please select at least one Primary Risk.");
-      return;
-    }
-
-    state.assessment = {
-      risks,
-      environments,
-      priority: $("prioritySelect").value,
-      categories,
-      industry: $("industry").value
-    };
-
-    const { error: assessmentError } = await supabaseClient
-  .from("polling_submissions")
-  .update({
-    assessment_risks: risks,
-    assessment_environments: environments,
-    assessment_priority: $("prioritySelect").value,
-    assessment_categories: categories,
-    assessment_industry: $("industry").value
-  })
-  .eq("id", state.submissionId);
-
-if (assessmentError) {
-  console.error("SAVE ASSESSMENT ERROR:", assessmentError);
-  showToast("Failed to save assessment data.");
-  return;
-}
-
-    showPage("pageGallery", "Recommended Products");
-
-    if (!state.products.length) {
-      await loadProducts();
-    }
-
-    applyRecommendation();
-  });
+  $("startRecommendationBtn").addEventListener("click", handleStartRecommendation);
 
   document.querySelectorAll(".tab").forEach((btn) => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
@@ -85,6 +44,57 @@ if (assessmentError) {
 
   bindProductImagePreview();
   bindFormattedResponseInputs();
+}
+
+async function handleStartRecommendation() {
+  const risks = getCheckedValues("riskGroup");
+  const environments = getCheckedValues("envGroup");
+  const categories = getCheckedValues("ppeTypeGroup");
+  const priority = $("prioritySelect").value;
+  const industry = $("industry").value;
+
+  if (!risks.length) {
+    showToast("Please select at least one Primary Risk.");
+    return;
+  }
+
+  if (!state.submissionId) {
+    showToast("Polling session is not ready. Please start again.");
+    return;
+  }
+
+  state.assessment = {
+    risks,
+    environments,
+    priority,
+    categories,
+    industry
+  };
+
+  const { error: assessmentError } = await supabaseClient
+    .from("polling_submissions")
+    .update({
+      assessment_risks: risks,
+      assessment_environments: environments,
+      assessment_priority: priority,
+      assessment_categories: categories,
+      assessment_industry: industry
+    })
+    .eq("id", state.submissionId);
+
+  if (assessmentError) {
+    console.error("SAVE ASSESSMENT ERROR:", assessmentError);
+    showToast("Failed to save assessment data.");
+    return;
+  }
+
+  showPage("pageGallery", "Recommended Products");
+
+  if (!state.products.length) {
+    await loadProducts();
+  }
+
+  applyRecommendation();
 }
 
 function onlyDigits(value) {
