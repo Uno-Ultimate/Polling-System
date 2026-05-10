@@ -2,6 +2,11 @@ function $(id) {
   return document.getElementById(id);
 }
 
+function getActivePageId() {
+  const activePage = document.querySelector(".page.active");
+  return activePage ? activePage.id : "pageClientEntry";
+}
+
 function showPage(pageId, label, options = {}) {
   const shouldPushHistory = options.pushHistory !== false;
 
@@ -17,13 +22,20 @@ function showPage(pageId, label, options = {}) {
   }
 
   target.classList.add("active");
+  document.body.dataset.page = pageId;
+
   $("currentPageLabel").textContent = label;
   window.scrollTo({ top: 0, behavior: "smooth" });
 
   if (shouldPushHistory) {
     const currentState = history.state || {};
+
     if (currentState.pageId !== pageId) {
-      history.pushState({ pageId, label }, "", window.location.href);
+      history.pushState(
+        { pageId, label },
+        "",
+        window.location.href
+      );
     }
   }
 }
@@ -73,19 +85,53 @@ function handleLogoClick() {
   }, 1200);
 }
 
-function setupBrowserBackNavigation() {
+function showNoResponsePopup() {
+  alert(
+    "You haven’t selected any product yet.\n\nPlease evaluate at least 1 product before leaving."
+  );
+}
+
+async function setupBrowserBackNavigation() {
   history.replaceState(
     { pageId: "pageClientEntry", label: "Client Portal" },
     "",
     window.location.href
   );
 
-  window.addEventListener("popstate", (event) => {
-    const stateData = event.state;
+  document.body.dataset.page = getActivePageId();
 
-    if (!stateData || !stateData.pageId) return;
+  window.addEventListener("popstate", async (event) => {
+    const currentPageId = document.body.dataset.page || getActivePageId();
+    const targetState = event.state;
 
-    showPage(stateData.pageId, stateData.label, {
+    if (currentPageId === "pageGallery") {
+      const hasResponse = state.submissionId
+        ? await hasAtLeastOneResponse(state.submissionId)
+        : false;
+
+      if (!hasResponse) {
+        showNoResponsePopup();
+        showToast("Please select at least 1 product before leaving.");
+
+        history.pushState(
+          { pageId: "pageGallery", label: "Recommended Products" },
+          "",
+          window.location.href
+        );
+
+        showPage("pageGallery", "Recommended Products", {
+          pushHistory: false
+        });
+
+        return;
+      }
+    }
+
+    if (!targetState || !targetState.pageId) {
+      return;
+    }
+
+    showPage(targetState.pageId, targetState.label || "UNO", {
       pushHistory: false
     });
   });
