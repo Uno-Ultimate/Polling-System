@@ -49,6 +49,11 @@ async function saveResponse(event) {
     return;
   }
 
+  await logBehavior(
+    "response_saved",
+    `Product response saved for product_id: ${state.selectedProduct.id}`
+  );
+
   updateFinishButtonState(true);
 
   closeProductModal();

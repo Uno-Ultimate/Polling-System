@@ -253,12 +253,12 @@
       </section>
     </main>
 
-    <!-- ADMIN DASHBOARD -->
+        <!-- ADMIN DASHBOARD -->
     <main id="pageAdmin" class="page">
       <section class="section-head">
         <div>
           <h1>UNO Dashboard</h1>
-          <p></p>
+          <p>Product polling, client responses, and market intelligence evaluation.</p>
         </div>
         <button class="ghost-btn" id="logoutBtn">Logout</button>
       </section>
@@ -267,6 +267,7 @@
         <button class="tab active" data-tab="productsAdmin">Input / Edit Product</button>
         <button class="tab" data-tab="analysisAdmin">Analisis Polling</button>
         <button class="tab" data-tab="clientsAdmin">Client</button>
+        <button class="tab" data-tab="evaluationAdmin">Evaluation / Behavior</button>
       </nav>
 
       <section id="productsAdmin" class="tab-panel active">
@@ -373,6 +374,64 @@
         <div class="table-card">
           <h2>Client & Response Detail</h2>
           <div id="clientList" class="client-list"></div>
+        </div>
+      </section>
+
+      <section id="evaluationAdmin" class="tab-panel">
+        <div id="evaluationKpiCards" class="kpi-grid"></div>
+
+        <div id="marketInsightCards" class="market-insight-grid"></div>
+
+        <div class="table-card">
+          <div class="table-head">
+            <h2>Session Evaluation</h2>
+            <p class="muted-small">Assessment, response quality, lead status, and blocked exit behavior.</p>
+          </div>
+
+          <div class="table-wrap evaluation-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Client</th>
+                  <th>Date</th>
+                  <th>Industry</th>
+                  <th>Risks</th>
+                  <th>Environment</th>
+                  <th>PPE Focus</th>
+                  <th>Priority</th>
+                  <th>Responses</th>
+                  <th>Interested</th>
+                  <th>Sample</th>
+                  <th>Quotation</th>
+                  <th>Volume</th>
+                  <th>Blocked Exit</th>
+                </tr>
+              </thead>
+              <tbody id="evaluationSessionTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-head">
+            <h2>Behavior Summary</h2>
+            <p class="muted-small">User behavior logs captured during polling sessions.</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Event Type</th>
+                  <th>Page</th>
+                  <th>Total Events</th>
+                  <th>Latest Event</th>
+                </tr>
+              </thead>
+              <tbody id="behaviorSummaryTable"></tbody>
+            </table>
+          </div>
         </div>
       </section>
     </main>

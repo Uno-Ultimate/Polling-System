@@ -28,6 +28,36 @@ function displayAdminList(value) {
   return items.length ? items.join(", ") : "";
 }
 
+function formatAdminDate(value) {
+  if (!value) return "-";
+
+  try {
+    return new Date(value).toLocaleString("id-ID", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
+  } catch (err) {
+    return value;
+  }
+}
+
+function formatAdminNumber(value) {
+  const numberValue = Number(value || 0);
+  return Number.isFinite(numberValue) ? numberValue.toLocaleString("id-ID") : "0";
+}
+
+function getEvaluationBadgeClass(status) {
+  const text = String(status || "").toLowerCase();
+
+  if (text.includes("hot")) return "hot";
+  if (text.includes("warm")) return "warm";
+  if (text.includes("blocked")) return "blocked";
+  if (text.includes("no response")) return "cold";
+  if (text.includes("responded")) return "responded";
+
+  return "neutral";
+}
+
 function fillSelectOptions(selectId, values, placeholder = null) {
   const select = $(selectId);
   if (!select) return;
@@ -211,6 +241,7 @@ function switchTab(tabId) {
   if (tabId === "productsAdmin") loadAdminProducts();
   if (tabId === "analysisAdmin") loadAnalysis();
   if (tabId === "clientsAdmin") loadClients();
+  if (tabId === "evaluationAdmin") loadEvaluation();
 }
 
 async function loadAdminDashboard() {
@@ -218,6 +249,7 @@ async function loadAdminDashboard() {
   await loadAdminProducts();
   await loadAnalysis();
   await loadClients();
+  await loadEvaluation();
 }
 
 async function uploadSingleProductImage(file) {
@@ -359,13 +391,8 @@ function renderAdminProductTable() {
           <td>${p.active ? "Yes" : "No"}</td>
           <td>
             <div class="table-actions">
-              <button class="mini-btn" onclick="editProductAdmin('${p.id}')">
-                Edit
-              </button>
-
-              <button class="mini-btn danger" onclick="deleteProductAdmin('${p.id}', '${safeText(p.code)}')">
-                Delete
-              </button>
+              <button class="mini-btn" onclick="editProductAdmin('${p.id}')">Edit</button>
+              <button class="mini-btn danger" onclick="deleteProductAdmin('${p.id}', '${safeText(p.code)}')">Delete</button>
             </div>
           </td>
         </tr>
@@ -381,17 +408,8 @@ function editProductAdmin(id) {
   fillSelectOptions("productCategory", state.masterOptions.categories || [], "Select Category");
   fillSelectOptions("productProtectionLevel", state.masterOptions.protectionLevels || [], "Select Protection Level");
 
-  fillCheckboxGroup(
-    "productUseCaseGroup",
-    state.masterOptions.useCases || [],
-    normalizeAdminArray(product.use_case)
-  );
-
-  fillCheckboxGroup(
-    "productResistantTypeGroup",
-    state.masterOptions.resistantTypes || [],
-    normalizeAdminArray(product.resistant_type)
-  );
+  fillCheckboxGroup("productUseCaseGroup", state.masterOptions.useCases || [], normalizeAdminArray(product.use_case));
+  fillCheckboxGroup("productResistantTypeGroup", state.masterOptions.resistantTypes || [], normalizeAdminArray(product.resistant_type));
 
   $("productFormTitle").textContent = "Edit Product";
   $("productId").value = product.id;
@@ -471,18 +489,9 @@ async function saveProductAdmin(event) {
     image_url: imageUrls.length > 0 ? imageUrls[0] : null
   };
 
-  let result;
-
-  if (id) {
-    result = await supabaseClient
-      .from("products")
-      .update(finalPayload)
-      .eq("id", id);
-  } else {
-    result = await supabaseClient
-      .from("products")
-      .insert(finalPayload);
-  }
+  const result = id
+    ? await supabaseClient.from("products").update(finalPayload).eq("id", id)
+    : await supabaseClient.from("products").insert(finalPayload);
 
   if (result.error) {
     console.error("SAVE PRODUCT ERROR:", result.error);
@@ -504,10 +513,7 @@ async function deleteProductAdmin(id, code) {
 
   if (!confirmed) return;
 
-  const { error } = await supabaseClient
-    .from("products")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabaseClient.from("products").delete().eq("id", id);
 
   if (error) {
     console.error("DELETE PRODUCT ERROR:", error);
@@ -546,8 +552,7 @@ function resetProductForm() {
 async function loadAnalysis() {
   const { data, error } = await supabaseClient
     .from("vw_polling_analysis")
-    .select("*")
-    .order("interested_count", { ascending: false });
+    .select("*");
 
   if (error) {
     console.error("LOAD ANALYSIS ERROR:", error);
@@ -557,7 +562,23 @@ async function loadAnalysis() {
 
   const rows = data || [];
 
-  const totals = rows.reduce(
+  const sortedRows = rows.sort((a, b) => {
+    const scoreA =
+      Number(a.interested_count || 0) * 5 +
+      Number(a.need_quotation_count || 0) * 4 +
+      Number(a.need_sample_count || 0) * 3 +
+      Number(a.total_estimated_volume_per_year || 0) * 0.0001;
+
+    const scoreB =
+      Number(b.interested_count || 0) * 5 +
+      Number(b.need_quotation_count || 0) * 4 +
+      Number(b.need_sample_count || 0) * 3 +
+      Number(b.total_estimated_volume_per_year || 0) * 0.0001;
+
+    return scoreB - scoreA;
+  });
+
+  const totals = sortedRows.reduce(
     (acc, row) => {
       acc.interested += Number(row.interested_count || 0);
       acc.sample += Number(row.need_sample_count || 0);
@@ -569,25 +590,13 @@ async function loadAnalysis() {
   );
 
   $("kpiCards").innerHTML = `
-    <div class="kpi-card">
-      <div class="kpi-value">${totals.interested}</div>
-      <div class="kpi-label">Interested</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value">${totals.sample}</div>
-      <div class="kpi-label">Need Sample</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value">${totals.quotation}</div>
-      <div class="kpi-label">Need Quotation</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value">${totals.volume.toLocaleString("id-ID")}</div>
-      <div class="kpi-label">Est. Annual Volume</div>
-    </div>
+    <div class="kpi-card"><div class="kpi-value">${totals.interested}</div><div class="kpi-label">Interested</div></div>
+    <div class="kpi-card"><div class="kpi-value">${totals.sample}</div><div class="kpi-label">Need Sample</div></div>
+    <div class="kpi-card"><div class="kpi-value">${totals.quotation}</div><div class="kpi-label">Need Quotation</div></div>
+    <div class="kpi-card"><div class="kpi-value">${totals.volume.toLocaleString("id-ID")}</div><div class="kpi-label">Est. Annual Volume</div></div>
   `;
 
-  $("analysisTable").innerHTML = rows
+  $("analysisTable").innerHTML = sortedRows
     .map(
       (r) => `
         <tr>
@@ -666,4 +675,193 @@ async function loadClients() {
         `;
       })
       .join("") || `<p>No client responses yet.</p>`;
+}
+
+async function loadEvaluation() {
+  const [
+    sessionResult,
+    behaviorResult
+  ] = await Promise.all([
+    supabaseClient
+      .from("vw_polling_session_evaluation")
+      .select("*")
+      .order("submission_created_at", { ascending: false }),
+    supabaseClient
+      .from("vw_polling_behavior_summary")
+      .select("*")
+      .order("total_events", { ascending: false })
+  ]);
+
+  if (sessionResult.error) {
+    console.error("LOAD SESSION EVALUATION ERROR:", sessionResult.error);
+    showToast("Failed to load session evaluation.");
+    return;
+  }
+
+  if (behaviorResult.error) {
+    console.error("LOAD BEHAVIOR SUMMARY ERROR:", behaviorResult.error);
+    showToast("Failed to load behavior summary.");
+    return;
+  }
+
+  const sessions = sessionResult.data || [];
+  const behaviors = behaviorResult.data || [];
+
+  renderEvaluationKpis(sessions, behaviors);
+  renderEvaluationSessions(sessions);
+  renderBehaviorSummary(behaviors);
+  renderMarketInsight(sessions);
+}
+
+function renderEvaluationKpis(sessions, behaviors) {
+  if (!$("evaluationKpiCards")) return;
+
+  const totalSessions = sessions.length;
+  const respondedSessions = sessions.filter((s) => Number(s.response_count || 0) > 0).length;
+  const noResponseSessions = sessions.filter((s) => Number(s.response_count || 0) === 0).length;
+  const hotLeads = sessions.filter((s) => String(s.evaluation_status || "").toLowerCase().includes("hot")).length;
+  const blockedExits = sessions.reduce((sum, s) => sum + Number(s.blocked_exit_count || 0), 0);
+
+  const conversionRate = totalSessions
+    ? Math.round((respondedSessions / totalSessions) * 100)
+    : 0;
+
+  $("evaluationKpiCards").innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-value">${totalSessions}</div>
+      <div class="kpi-label">Total Sessions</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">${conversionRate}%</div>
+      <div class="kpi-label">Response Conversion</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">${hotLeads}</div>
+      <div class="kpi-label">Hot Leads</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">${blockedExits}</div>
+      <div class="kpi-label">Blocked Exit Attempts</div>
+    </div>
+  `;
+}
+
+function renderEvaluationSessions(sessions) {
+  if (!$("evaluationSessionTable")) return;
+
+  $("evaluationSessionTable").innerHTML = sessions
+    .map((s) => {
+      const status = safeText(s.evaluation_status);
+      const badgeClass = getEvaluationBadgeClass(status);
+
+      return `
+        <tr>
+          <td>
+            <span class="eval-badge ${badgeClass}">${status}</span>
+          </td>
+          <td>
+            <b>${safeText(s.company_name)}</b><br>
+            <span class="muted-small">${safeText(s.full_name)} · ${safeText(s.position_title)}</span><br>
+            <span class="muted-small">${safeText(s.whatsapp)} · ${safeText(s.email)}</span>
+          </td>
+          <td>${formatAdminDate(s.submission_created_at)}</td>
+          <td>${safeText(s.assessment_industry || s.industry)}</td>
+          <td>${displayAdminList(s.assessment_risks)}</td>
+          <td>${displayAdminList(s.assessment_environments)}</td>
+          <td>${displayAdminList(s.assessment_categories)}</td>
+          <td>${safeText(s.assessment_priority)}</td>
+          <td>${formatAdminNumber(s.response_count)}</td>
+          <td>${formatAdminNumber(s.interested_count)}</td>
+          <td>${formatAdminNumber(s.sample_count)}</td>
+          <td>${formatAdminNumber(s.quotation_count)}</td>
+          <td>${formatAdminNumber(s.total_estimated_volume)}</td>
+          <td>${formatAdminNumber(s.blocked_exit_count)}</td>
+        </tr>
+      `;
+    })
+    .join("") || `
+      <tr>
+        <td colspan="14">No evaluation data yet.</td>
+      </tr>
+    `;
+}
+
+function renderBehaviorSummary(behaviors) {
+  if (!$("behaviorSummaryTable")) return;
+
+  $("behaviorSummaryTable").innerHTML = behaviors
+    .map(
+      (b) => `
+        <tr>
+          <td><b>${safeText(b.event_type)}</b></td>
+          <td>${safeText(b.page_id)}</td>
+          <td>${formatAdminNumber(b.total_events)}</td>
+          <td>${formatAdminDate(b.latest_event_at)}</td>
+        </tr>
+      `
+    )
+    .join("") || `
+      <tr>
+        <td colspan="4">No behavior logs yet.</td>
+      </tr>
+    `;
+}
+
+function renderMarketInsight(sessions) {
+  if (!$("marketInsightCards")) return;
+
+  const riskCounter = {};
+  const categoryCounter = {};
+  const industryCounter = {};
+  const priorityCounter = {};
+
+  sessions.forEach((s) => {
+    normalizeAdminArray(s.assessment_risks).forEach((x) => {
+      riskCounter[x] = (riskCounter[x] || 0) + 1;
+    });
+
+    normalizeAdminArray(s.assessment_categories).forEach((x) => {
+      categoryCounter[x] = (categoryCounter[x] || 0) + 1;
+    });
+
+    const industry = s.assessment_industry || s.industry;
+    if (industry) industryCounter[industry] = (industryCounter[industry] || 0) + 1;
+
+    if (s.assessment_priority) {
+      priorityCounter[s.assessment_priority] = (priorityCounter[s.assessment_priority] || 0) + 1;
+    }
+  });
+
+  $("marketInsightCards").innerHTML = `
+    ${renderTopInsightCard("Top Risks", riskCounter)}
+    ${renderTopInsightCard("Top PPE Categories", categoryCounter)}
+    ${renderTopInsightCard("Top Industries", industryCounter)}
+    ${renderTopInsightCard("Top Priorities", priorityCounter)}
+  `;
+}
+
+function renderTopInsightCard(title, counter) {
+  const rows = Object.entries(counter)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  return `
+    <div class="table-card insight-card">
+      <h3>${title}</h3>
+      ${
+        rows.length
+          ? rows
+              .map(
+                ([label, count]) => `
+                  <div class="insight-row">
+                    <span>${safeText(label)}</span>
+                    <b>${formatAdminNumber(count)}</b>
+                  </div>
+                `
+              )
+              .join("")
+          : `<p class="muted-small">No data yet.</p>`
+      }
+    </div>
+  `;
 }

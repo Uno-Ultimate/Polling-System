@@ -31,11 +31,7 @@ function showPage(pageId, label, options = {}) {
     const currentState = history.state || {};
 
     if (currentState.pageId !== pageId) {
-      history.pushState(
-        { pageId, label },
-        "",
-        window.location.href
-      );
+      history.pushState({ pageId, label }, "", window.location.href);
     }
   }
 }
@@ -91,6 +87,22 @@ function showNoResponsePopup() {
   );
 }
 
+async function logBehavior(eventType, notes = "") {
+  try {
+    await supabaseClient
+      .from("polling_behavior_logs")
+      .insert({
+        client_id: state.clientId || null,
+        submission_id: state.submissionId || null,
+        event_type: eventType,
+        page_id: document.body.dataset.page || getActivePageId(),
+        notes
+      });
+  } catch (err) {
+    console.warn("BEHAVIOR LOG ERROR:", err);
+  }
+}
+
 async function setupBrowserBackNavigation() {
   history.replaceState(
     { pageId: "pageClientEntry", label: "Client Portal" },
@@ -110,6 +122,11 @@ async function setupBrowserBackNavigation() {
         : false;
 
       if (!hasResponse) {
+        await logBehavior(
+          "blocked_back_without_response",
+          "User attempted to leave gallery using browser/backpress without submitting any product response."
+        );
+
         showNoResponsePopup();
         showToast("Please select at least 1 product before leaving.");
 
@@ -125,6 +142,11 @@ async function setupBrowserBackNavigation() {
 
         return;
       }
+
+      await logBehavior(
+        "allowed_back_after_response",
+        "User left gallery using browser/backpress after submitting at least one product response."
+      );
     }
 
     if (!targetState || !targetState.pageId) {
@@ -134,5 +156,20 @@ async function setupBrowserBackNavigation() {
     showPage(targetState.pageId, targetState.label || "UNO", {
       pushHistory: false
     });
+  });
+
+  window.addEventListener("beforeunload", function (event) {
+    const currentPageId = document.body.dataset.page || getActivePageId();
+
+    if (currentPageId !== "pageGallery") return;
+    if (!state.submissionId) return;
+
+    logBehavior(
+      "attempt_beforeunload_gallery",
+      "User attempted to refresh, close tab, or leave browser while on gallery page."
+    );
+
+    event.preventDefault();
+    event.returnValue = "";
   });
 }
